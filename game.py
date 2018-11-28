@@ -1,20 +1,78 @@
-import box
+# Óliver Máni
+# Lokaverkefni
+# pygame
+
+
 import pygame
+import random
 
-PLAYER_SPEED = 5
+arrow = random.randint(0, 7)
 
-boxData = lambda box: pygame.Rect(box.x, box.y, box.width, box.height)
+def renderContent():
+	window.blit(font.render('Stig: ' + str(score), False, BLACK), (20, 20))
+	window.blit(font2.render(str(health), False, BLACK), (500, 20))
+	window.blit(pygame.transform.scale(heart, (64,64)), (550, 20))
+	
+
+def newArrow():
+	direction = ["left", "right", "up", "down"][random.randint(0,3)]
+	pick = random.randint(0, 7)
+
+
+
+	if direction == "left":
+		x = WIDTH
+		while x > WIDTH/2-150:
+			x -= 50
+			renderContent()
+			window.blit(pygame.transform.scale(arrows[pick], (300,300)), (x, HEIGHT/2-150))
+			pygame.display.update()
+			window.fill(RED)
+			clock.tick(ticks)
+	elif direction == "right":
+		x = -300
+		while x < WIDTH/2-150:
+			x += 50
+			renderContent()
+			window.blit(pygame.transform.scale(arrows[pick], (300,300)), (x, HEIGHT/2-150))
+			pygame.display.update()
+			window.fill(RED)
+			clock.tick(ticks)
+	elif direction == "up":
+		y = HEIGHT
+		while y > HEIGHT/2-150:
+			y -= 50
+			renderContent()
+			window.blit(pygame.transform.scale(arrows[pick], (300,300)), (WIDTH/2-150, y))
+			pygame.display.update()
+			window.fill(RED)
+			clock.tick(ticks)
+	elif direction == "down":
+		y = -300
+		while y < HEIGHT/2-150:
+			y += 50
+			renderContent()
+			window.blit(pygame.transform.scale(arrows[pick], (300,300)), (WIDTH/2-150, y))
+			pygame.display.update()
+			window.fill(RED)
+			clock.tick(ticks)
+	return pick
+
+
+STATUS = "play"
+
+arrows = [pygame.image.load('resources/' + str(x) + ".png") for x in ("up", "down", "right","left", "oup", "odown", "oright", "oleft")]
+heart = pygame.image.load('resources/heal.png')
 
 pygame.init()
 pygame.font.init()
 
-font = pygame.font.SysFont('Comic Sans MS', 30)
+font = pygame.font.Font('resources/Pixeled.ttf', 16)
+font2 = pygame.font.Font('resources/Pixeled.ttf', 32)
 
-window_size = WIDTH, HEIGHT = 640, 900
+window_size = WIDTH, HEIGHT = 640, 480
 
 window = pygame.display.set_mode(window_size)
-
-grass = pygame.image.load('myndir/gras.png')
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -27,44 +85,88 @@ SKY = (141, 217, 242)
 
 running = True
 
-pygame.display.set_caption('Leikur')
+pygame.display.set_caption('Örvaleikurinn')
 
-window.fill(SKY)
-
-x = 0
+window.fill(RED)
 
 clock = pygame.time.Clock()
 ticks = 60
 
-player = box.Box((WIDTH/2)-30, 30, 60, 60)
+score = 0
+health = 3
+
+pygame.mixer.init()
+music = pygame.mixer.Sound('resources/bgplay.wav')
+music.play()
+mistake_sound = pygame.mixer.Sound("resources/No.wav")
+
+can_press = True
+
+deltaTime = 60
+
+delta = deltaTime
+
+arrow_x = WIDTH/2-150
+arrow_y = HEIGHT/2-150
+
+randomSpeed = 1
 
 while running:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			running = False
-		if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-			running = False
+	if STATUS == "play":
+		if delta <= 0:
+			can_press = False
+			health -= 1
+			mistake_sound.play()
+			arrow = newArrow()
+			
+			can_press = True
+			delta = ticks
 
-	keys = pygame.key.get_pressed()
-	if keys[pygame.K_a]:
-		player.x -= PLAYER_SPEED
-	if keys[pygame.K_d]:
-		player.x += PLAYER_SPEED
+		if delta <= 25:
+			arrow_x += random.randint(-randomSpeed, randomSpeed)
+			arrow_y += random.randint(-randomSpeed, randomSpeed)
+			randomSpeed += 1
+		else:
+			arrow_x = WIDTH/2-150
+			arroy_y = HEIGHT/2-150
+			randomSpeed = 1
 
-	'''
-	if keys[pygame.K_s]:
-		player.y += PLAYER_SPEED
-	if keys[pygame.K_w]:
-		player.y -= PLAYER_SPEED
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+				running = False
+			if event.type == pygame.KEYDOWN:
+				if event.key >= 273 and event.key <= 276 and can_press:
+					arrow_pushed = event.key-273
+					if arrow_pushed >= 0 and arrow_pushed <= 3:
+						if arrow_pushed == arrow or (arrow == 4 and arrow_pushed == 1) or (arrow == 5 and arrow_pushed == 0) or (arrow == 6 and arrow_pushed == 3) or (arrow == 7 and arrow_pushed == 2):
+							score += 1
+							#if deltaTime > 25:
+							#	deltaTime -= 1
+						else:
+							health -= 1
+							mistake_sound.play()
 
-	for x in range(0, 640, 32):
-		window.blit(grass, (x, 480-32))
+					can_press = False
+					delta = deltaTime
+					#print(delta)
+					if health < 1:
+						STATUS = "gameover"
+						continue
+					arrow = newArrow()
+					can_press = True
+		delta -= 1
 
-	'''
+		renderContent()
+		window.blit(pygame.transform.scale(arrows[arrow], (300,300)), (arrow_x, arrow_y))
+		
+		pygame.display.update()
+		window.fill(RED)
+		clock.tick(ticks)
 
-	pygame.draw.rect(window, RED, boxData(player))
-	window.blit(font.render('Stig: 0', False, WHITE), (500, 30))
-	pygame.display.update()
-	window.fill(SKY)
-	clock.tick(ticks)
+	elif STATUS == "gameover":
+		window.fill(RED)
+		pygame.display.update()
+		clock.tick(ticks)
 pygame.quit()
