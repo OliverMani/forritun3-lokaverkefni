@@ -59,7 +59,7 @@ def newArrow():
 	return pick
 
 
-STATUS = "play"
+STATUS = "menu"
 
 arrows = [pygame.image.load('resources/' + str(x) + ".png") for x in ("up", "down", "right","left", "oup", "odown", "oright", "oleft")]
 heart = pygame.image.load('resources/heal.png')
@@ -96,8 +96,10 @@ score = 0
 health = 3
 
 pygame.mixer.init()
+menu_music = pygame.mixer.Sound('resources/menu.ogg')
+menu_music.play()
 music = pygame.mixer.Sound('resources/bgplay.wav')
-music.play()
+
 mistake_sound = pygame.mixer.Sound("resources/No.wav")
 
 can_press = True
@@ -112,7 +114,21 @@ arrow_y = HEIGHT/2-150
 randomSpeed = 1
 
 while running:
-	if STATUS == "play":
+		
+
+	if STATUS == "menu":
+		for event in pygame.event.get():
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_SPACE:
+					STATUS = "play"
+					menu_music.stop()
+					music.play()
+				if event.type == pygame.QUIT:
+					running = False
+				if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+					running = False
+		window.blit(font.render("Yttu a bil til ad byrja", False, BLACK), (200, 400))
+	elif STATUS == "play":
 		if delta <= 0:
 			can_press = False
 			health -= 1
@@ -144,29 +160,49 @@ while running:
 							score += 1
 							#if deltaTime > 25:
 							#	deltaTime -= 1
+							can_press = False
+							delta = deltaTime
+							print(delta)
+
+							arrow = newArrow()
+							can_press = True
 						else:
 							health -= 1
 							mistake_sound.play()
+							if health < 1:
+								STATUS = "gameover"
+								window.fill(RED)
+								#music.stop()
+							elif delta > 25:
+								delta = 25
 
-					can_press = False
-					delta = deltaTime
-					#print(delta)
-					if health < 1:
-						STATUS = "gameover"
-						continue
-					arrow = newArrow()
-					can_press = True
+
+					
 		delta -= 1
 
 		renderContent()
 		window.blit(pygame.transform.scale(arrows[arrow], (300,300)), (arrow_x, arrow_y))
 		
-		pygame.display.update()
-		window.fill(RED)
-		clock.tick(ticks)
+		
 
 	elif STATUS == "gameover":
-		window.fill(RED)
-		pygame.display.update()
-		clock.tick(ticks)
+		renderContent()
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+				running = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_SPACE:
+					health = 3
+					score = 0
+					deltaTime = 60
+					randomSpeed = 1
+					delta = deltaTime
+					STATUS = "play"
+		window.blit(font2.render("Leik lokið", False, BLACK), (WIDTH/2-150, 20))
+
+	pygame.display.update()
+	window.fill(RED)
+	clock.tick(ticks)
 pygame.quit()
