@@ -261,8 +261,8 @@ while running:
 					randomSpeed = 1
 					delta = deltaTime
 					STATUS = "menu"
-					#music.stop
-					#menu_music.play()
+					music.stop()
+					menu_music.play()
 		window.blit(font2.render("Leik lokid", False, BLACK), (WIDTH/2-150, 20))
 		window.blit(font3.render("Ýttu á bil til þess að fara til baka í main menu", False, BLACK), (20, 400))
 	elif STATUS == "instruction":
