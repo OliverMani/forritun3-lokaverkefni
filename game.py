@@ -117,9 +117,9 @@ health = 3
 deltaTime = defaultDeltaTime
 
 # Öll hljóð
-#menu_music = pygame.mixer.Sound('resources/menu.ogg')
-#menu_music.play()
-#music = pygame.mixer.Sound('resources/bgplay.wav')
+menu_music = pygame.mixer.Sound('resources/menu.ogg')
+menu_music.play()
+music = pygame.mixer.Sound('resources/bgplay.wav')
 mistake_sound = pygame.mixer.Sound("resources/No.wav")
 
 # can_press á að koma í veg fyrir að örvatakkarnir virki á meðan þeir eru að detta inn
@@ -149,8 +149,8 @@ while running:
 
 				if event.key == pygame.K_SPACE:
 					STATUS = "play"
-					#menu_music.stop()
-					#music.play()
+					menu_music.stop()
+					music.play()
 				elif event.key == pygame.K_i:
 					STATUS = "instruction"
 
